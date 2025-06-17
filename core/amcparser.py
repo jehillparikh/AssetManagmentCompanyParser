@@ -16,6 +16,8 @@ class AMCPortfolioParser(ABC):
         self.instrument_type_logic = config.get("instrument_type_logic", self._default_instrument_type_logic)
         self.full_data = pd.DataFrame()
         self.isin_lookup =self._create_ISIN_mapping(pd.read_excel(config.get("ISIN_file"))) #TODO: Make this configurable or pass as an argument
+        self.current_datafile = None
+        self.current_sheet_name = None
 
         if self.final_columns is None or len(self.final_columns) == 0:
             self.final_columns = [ "Name of Instrument", "ISIN", "Coupon", "Industry", "Quantity", "Market Value", "% to Net Assets",
@@ -113,10 +115,12 @@ class AMCPortfolioParser(ABC):
     def parse_all_portfolios(self):
         filenames = self.get_file_names()
         for datafile in filenames:
+            self.current_datafile = datafile # Set current datafile for access in parser methods
             df_raw = self.read_excel_file(datafile)
             if df_raw is None:
                 continue
             for sheet_name, sheet_df in df_raw.items():
+                self.current_sheet_name = sheet_name # Set current sheet name
                 if sheet_name not in self.sheets_to_avoid:
                     self.process_sheet(datafile, sheet_name, sheet_df)
 

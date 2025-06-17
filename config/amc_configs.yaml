@@ -12,13 +12,43 @@ final_columns: &default_columns
   - Scheme Name
   - AMC
   - Scheme ISIN
+  # - Rating # Uncomment if Rating is to be a standard final column
 Axis Mutual Fund:
   data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Axis Mutual Fund
   output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/axis_mutual_fund_portfolio.xlsx
   ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
   amc_name: Axis Mutual Fund
-  sheets_to_avoid: []
-  column_mapping: {}
+  sheets_to_avoid:
+    - AXISESG
+    - Common Notes
+    - Index # This sheet is read by the parser for fund name mapping, not as a data sheet
+  column_mapping:
+    # These mappings must correspond to the actual headers found in Axis Excel files
+    # after skipping to the header_row_idx and taking df_clean.iloc[0].
+    # The target names are those expected by the AxisParser's processing logic,
+    # based on the legacy parser's hardcoded column assignment.
+    # Example: If the file's 2nd column (after a dummy first one) is "Security", map "Security": "Name of Instrument".
+    # If the file's 3rd column is "ISIN Code", map "ISIN Code": "ISIN".
+    # The following are placeholders assuming file headers are somewhat direct.
+    # This section WILL LIKELY NEED ADJUSTMENT based on actual Axis file headers.
+    "Instrument Name": "Name of Instrument" # Placeholder for actual header for instrument name
+    "ISIN Code": "ISIN"                   # Placeholder for actual header for ISIN
+    "Sector": "Industry"                  # Placeholder for actual header for Industry
+    "Qty": "Quantity"                     # Placeholder for actual header for Quantity
+    "Market Value INR (Lakhs)": "Market Value" # Placeholder for actual header for Market Value
+    "Net Assets (%)": "% to Net Assets"     # Placeholder for actual header for % to Net Assets
+    "Yield Maturity (%)": "Yield"         # Placeholder for actual header for Yield
+    "Coupon Rate (%)": "Coupon"             # Placeholder for actual header for Coupon
+    "Asset Type/Rating": "Type"           # Placeholder if Axis files provide a 'Type' column
+    # If there's a dummy first column with a consistent name, e.g., "Sr No":
+    # "Sr No": "dummy_first_column" # The parser would then need to know to drop "dummy_first_column"
+    # If the first column is unnamed or its name varies, it's harder to map and drop.
+    # The legacy parser implied dropping the first physical column.
+    # The current AxisParser does not explicitly drop a column by name after mapping.
+    # It relies on the mapping to select and name relevant columns.
+    # If a dummy column needs to be dropped, it should be mapped to a specific name
+    # and the parser logic would need to be enhanced to drop columns with that specific name.
+    # For now, we assume the mapping provides only the necessary 9 columns.
   final_columns: *default_columns
 HDFC Mutual Fund:
   data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/HDFC Mutual Fund
@@ -38,7 +68,7 @@ HDFC Mutual Fund:
     ~YTC (AT1/Tier 2 bonds): Yield to call
     Derivative % to NAV: Derivative % to NAV
     Unhedged % to NAV: Unhedged % to NAV
-    final_columns: *default_columns
+  final_columns: *default_columns
 ICICI Prudential Mutual Fund:
   data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/ICICI Prudential Mutual Fund
   output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/icici_prudential_mutual_fund_portfolio.xlsx
@@ -56,10 +86,174 @@ ICICI Prudential Mutual Fund:
     Yield of the instrument: Yield
     Yield to Call @: Yield to call
   final_columns: *default_columns
-kotak_mutual_fund:
+Kotak Mutual Fund:
   data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Kotak Mutual Fund
   output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/kotak_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
   amc_name: Kotak Mutual Fund
-  sheets_to_avoid: []
-  column_mapping: {}
+  sheets_to_avoid:
+    - ESG
+    - Scheme # This sheet is read by the parser for mapping, not as a data sheet
+    - Common Notes
+  column_mapping:
+    # These are assumed actual headers in Kotak data sheets, mapped to legacy target names.
+    # The legacy script assigned columns by order after finding header:
+    # ["Type", "Coupon", "Name of Instrument", "ISIN", "Industry", "Yield", "Quantity", "Market Value (Rs.in Lacs)", "% to Net Assets"]
+    # And then renamed "Market Value (Rs.in Lacs)" to "Market Value".
+    # This mapping achieves that directly.
+    "Col1_Header_for_Type": "Type"
+    "Col2_Header_for_Coupon": "Coupon"
+    "Col3_Header_for_Name": "Name of Instrument"
+    "Col4_Header_for_ISIN": "ISIN"
+    "Col5_Header_for_Industry": "Industry"
+    "Col6_Header_for_Yield": "Yield"
+    "Col7_Header_for_Quantity": "Quantity"
+    "Col8_Header_for_MarketValue_Lacs": "Market Value"
+    "Col9_Header_for_PctToNetAssets": "% to Net Assets"
+  final_columns: *default_columns
+Mirae Asset Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Mirae Asset Mutual Fund
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/mirae_asset_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: Mirae Asset Mutual Fund
+  sheets_to_avoid: [] # Parser logic handles ESG/column count skips
+  column_mapping:
+    # These map actual headers from Mirae files to the 7 standardized names expected by the parser
+    # (based on legacy parser's fixed column list after data loading and initial cleaning)
+    # Placeholders below - NEED VERIFICATION with actual Mirae file headers.
+    "Name of the Scrip": "Name of Instrument"   # Example placeholder
+    "ISIN Code": "ISIN"                     # Example placeholder
+    "Industry Group": "Industry"               # Example placeholder
+    "Quanity": "Quantity"                   # Example placeholder (note common typo 'Quanity')
+    "Market Value (In Lakhs)": "Market Value" # Example placeholder
+    "% to Net Asset": "% to Net Assets"         # Example placeholder
+    "Yield of the Instrument": "Yield"         # Example placeholder
+  final_columns: *default_columns
+Nippon India Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Nippon India Mutual Fund/
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/nippon_india_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: Nippon India Mutual Fund
+  sheets_to_avoid:
+    - INDEX # This sheet is read by the parser for fund name mapping, not as a data sheet
+  column_mapping:
+    # These map actual headers from Nippon files to the 7 standardized names expected by the parser
+    # (based on legacy parser's fixed column list: ISIN, Name of Instrument, Industry, Quantity, Market Value, % to Net Assets, Yield)
+    # Placeholders below - NEED VERIFICATION with actual Nippon file headers.
+    "ISIN": "ISIN"                             # Assuming direct match or specific header like "ISIN No."
+    "Name of Security": "Name of Instrument"   # Example placeholder
+    "Sector": "Industry"                       # Example placeholder
+    "Quantity": "Quantity"                     # Assuming direct match
+    "Market Value (Rs.Lakh)": "Market Value"   # Example placeholder
+    "Net Asset (%)": "% to Net Assets"         # Example placeholder
+    "Yield": "Yield"                           # Assuming direct match or "Yield on Instrument"
+  final_columns: *default_columns
+PPFAS Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/PPFAS Mutual Fund/
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/ppfas_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: PPFAS Mutual Fund # Using common short name
+  sheets_to_avoid:
+    - ESG
+    - Scheme # Generic sheet name to avoid if present
+    - Common Notes
+    - Index # This sheet is read by the parser for fund name mapping
+  column_mapping:
+    # These map actual headers from PPFAS files to the internal names.
+    # Legacy parser expected 8 columns, then dropped one ("Yield 2") and renamed one ("Market Value (Rs.in Lacs)" to "Market Value").
+    # The mapping should achieve the 7 target columns directly if possible, plus map the column to be dropped.
+    # Placeholders below - NEED VERIFICATION with actual PPFAS file headers.
+    "Name of the Security / Issuer": "Name of Instrument" # Example placeholder
+    "ISIN No.": "ISIN"                                  # Example placeholder
+    "Industry / Sector": "Industry"                     # Example placeholder
+    "Quantity / No. of Shares": "Quantity"              # Example placeholder
+    "Market Value (Rs. in Lakh)": "Market Value"        # Directly map to the final desired name
+    "% to Net Assets": "% to Net Assets"                # Example placeholder
+    "Yield (%)": "Yield"                                # Example placeholder
+    "Column To Be Dropped": "Yield 2"                   # Map the actual 8th column header to "Yield 2"
+  final_columns: *default_columns
+Quant Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Quant Mutual Fund/
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/quant_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: Quant Mutual Fund
+  sheets_to_avoid: [] # Parser logic handles column count based skips
+  max_columns_allowed: 10 # Custom config for QuantParser, from legacy logic
+  column_mapping:
+    # These map actual headers from Quant files to the 9 standardized names expected by the parser (before dropping "SR")
+    # Legacy: ["SR","ISIN","Name of Instrument", "Rating", "Industry", "Quantity", "Market Value", "% to Net Assets", "Yield"]
+    # Placeholders below - NEED VERIFICATION with actual Quant file headers.
+    "Sr.No.": "SR"                             # Or "SR NO", "Serial No.", etc.
+    "ISIN": "ISIN"                             # Or "ISIN Code"
+    "Instrument Name": "Name of Instrument"    # Or "Security Name"
+    "Rating": "Rating"                         # Or "Credit Rating" - this column will be kept if "Rating" is in final_columns
+    "Industry": "Industry"                     # Or "Sector"
+    "Quantity": "Quantity"                     # Or "Qty."
+    "Market Value": "Market Value"             # Or "Market Value (Rs. Cr.)", "Market Value (in Lacs)" etc.
+    "% of Net Assets": "% to Net Assets"       # Or "% to NAV"
+    "Yield To Maturity": "Yield"               # Or "YTM (%)"
+  final_columns: *default_columns
+SBI Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/SBI Mutual Fund/
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/sbi_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: SBI Mutual Fund
+  sheets_to_avoid:
+    - Index # This sheet is read by the parser for fund name mapping
+  sbi_columns_to_drop: # Exact names as found by pandas, newlines escaped for YAML
+    - 'YTC % ##'
+    - 'Notes & Symbols'
+    - 'BRSR Scores \\n(also called as ESG Scores) '
+    - 'BRSR Core Scores(also called as ESG Core Scores) '
+    - 'Link to BRSR disclosures'
+    - 'Link to BRSR Core Assured disclosures'
+    - 'BRSR Core Scores\\n(also called as ESG Core Scores) ' # Duplicate in legacy, ensure both forms if they differ
+  column_mapping:
+    # These map actual headers from SBI files (after specific columns are dropped) to the 7 standardized names.
+    # Legacy: ["Name of Instrument", "ISIN", "Industry", "Quantity", "Market Value", "% to Net Assets", "Yield"]
+    # Placeholders below - NEED VERIFICATION with actual SBI file headers.
+    "Name of the security": "Name of Instrument" # Example placeholder
+    "ISIN No": "ISIN"                            # Example placeholder
+    "Vertical": "Industry"                     # Example placeholder (Sector, etc.)
+    "Quantity": "Quantity"                     # Assuming direct match
+    "Market value": "Market Value"             # Example placeholder (e.g. "Market value (Rs.Lakh)")
+    "Net Asset": "% to Net Assets"             # Example placeholder (e.g. "% of Net Assets")
+    "Yield - T.M.": "Yield"                    # Example placeholder
+  final_columns: *default_columns
+Bank of India Mutual Fund:
+  data_dir: /Users/njp60/Documents/code/mutualfundbackend/funddata/data/Bank of India Mutual Fund/
+  output_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/output/bank_of_india_mutual_fund_portfolio.xlsx
+  ISIN_file: /Users/njp60/Documents/code/AssetManagmentCompanyParser/ISIN/fundisin.xlsx
+  amc_name: Bank of India Mutual Fund
+  sheets_to_avoid: [] # Parser logic will rely on content (ISIN presence)
+  column_mapping:
+    # Comprehensive mapping based on legacy parser's internal col_mapping and logic
+    # Map various source headers to standardized internal names
+    "Security Name": "Name of Instrument"
+    "Name of Security": "Name of Instrument"
+    "Scrip Name": "Name of Instrument"
+    "Instrument Name": "Name of Instrument"
+    "ISIN": "ISIN" # Assuming direct match if available
+    "ISIN No.": "ISIN"
+    "Industry/Rating": "Industry"
+    "Industry": "Industry"
+    "Sector": "Industry"
+    "Coupon Rate": "Coupon"
+    "Rate (%)": "Coupon"
+    "Coupon": "Coupon"
+    "Asset Class": "Asset Class" # Used for Type determination if Coupon not available
+    "Quantity": "Quantity"
+    "Qty": "Quantity"
+    "Market Value (Rs. in Lakhs)": "Market Value"
+    "Market Value (In Lakhs)": "Market Value"
+    "Market Value (Rs. Lakhs)": "Market Value"
+    "Market Value": "Market Value"
+    "Fair Value": "Market Value"
+    "% to NAV": "% to Net Assets"
+    "% of Net Assets": "% to Net Assets"
+    "Percentage to NAV": "% to Net Assets"
+    "Net Assets (%)": "% to Net Assets"
+    "Yield": "Yield" # If a direct Yield column exists
+    "Yield to Maturity": "Yield"
+    "YTM": "Yield"
   final_columns: *default_columns
